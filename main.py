@@ -66,8 +66,8 @@ def read_episodes_csv(file_path):
             data.append((name, saison, episode, date, channel, country, href))
     return data
 
-csv_file = "data/files/episodes.csv"
-data = read_episodes_csv(csv_file)
+# csv_file = "data/files/episodes.csv"
+# data = read_episodes_csv(csv_file)
 
 def get_connection_sqlite():
     conn = sqlite3.connect("data/databases/database.db")
@@ -108,11 +108,37 @@ def select_episodes_sorted(data):
     cur.close()
     conn.close()
     return rows
-    
-result = select_episodes_sorted("country")
 
-for row in result:
-    print(row)
+def select_disctinc_name():
+    conn = get_connection_sqlite()
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT name FROM episodes")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+    
+# result = select_disctinc_name()
+
+def count_words(data):
+    compteur_mots = {}
+
+    for tuple in result:
+        titre = tuple[0] 
+        mots = titre.split() 
+
+        for mot in mots:
+            mot = mot.lower()  
+            if mot in compteur_mots:
+                compteur_mots[mot] += 1
+            else:
+                compteur_mots[mot] = 1
+
+    mot_plus_utilise = max(compteur_mots, key=compteur_mots.get)
+    nb=compteur_mots[mot_plus_utilise]
+    return mot_plus_utilise,nb
+
+# most_use_word = count_words(result)
 
 def insert_data_postgres(csv_file):
     episodes_data = read_episodes_csv(csv_file)
