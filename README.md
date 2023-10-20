@@ -22,6 +22,9 @@ Requête : SELECT channel, COUNT(name) AS Nombre_episodes FROM episodes GROUP BY
 # 3 pays qui ont le plus d'épisodes
 
 Requête SELECT country, COUNT(name) AS Nombre_episodes FROM episodes GROUP BY country DESC LIMIT 3
+('Etats_Unis', 353)
+('France', 76)
+('Canada', 63)
 
 # Le mot le plus utilisé
 
