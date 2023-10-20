@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import psycopg2
 import sqlite3
+import time
 
 url_spin= "https://www.spin-off.fr/calendrier_des_series.html?date=2023-10"
 
@@ -36,7 +37,7 @@ def scrapping_series():
             infos.append([name, saison, episode, channel, country, href,date])
     return infos
 
-infos = scrapping_series()
+""" infos = scrapping_series() """
 
 def save_data_file(infos):
     csv_file = "data/files/episodes.csv"
@@ -48,7 +49,7 @@ def save_data_file(infos):
 
     print(f"Insertion des données dans le {csv_file}.")
 
-save_data_file(infos)
+""" save_data_file(infos) """
 
 def read_episodes_csv(file_path):
     data = []
@@ -65,6 +66,9 @@ def read_episodes_csv(file_path):
             href = values[6]
             data.append((name, saison, episode, date, channel, country, href))
     return data
+
+# csv_file = "data/files/episodes.csv"
+# data = read_episodes_csv(csv_file)
 
 def get_connection_sqlite():
     conn = sqlite3.connect("data/databases/database.db")
@@ -97,14 +101,81 @@ def insert_episodes(data):
     cur.close()
     conn.close()
 
-def select_episodes():
+"""Requetes utiles"""
+def select_episodes_sorted(data):
     conn = get_connection_sqlite()
     cur = conn.cursor()
+    cur.execute(f"SELECT {data}, COUNT(name) AS Nombre_episodes FROM episodes GROUP BY {data}")
+    rows = cur.fetchall()
     cur.close()
     conn.close()
-    
-csv_file = "data/files/episodes.csv"
+    return rows
 
+def select_distinct_name():
+    conn = get_connection_sqlite()
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT name FROM episodes")
+    
+result_sorted = select_episodes_sorted("country")
+
+def select_href():
+    conn = get_connection_sqlite()
+    cur = conn.cursor()
+    cur.execute("SELECT href FROM episodes WHERE channel = 'Apple TV+' ")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+    
+result = select_distinct_name()
+
+def count_words(data):
+    compteur_mots = {}
+
+    for tuple in result:
+        titre = tuple[0] 
+        mots = titre.split() 
+
+        for mot in mots:
+            mot = mot.lower()  
+            if mot in compteur_mots:
+                compteur_mots[mot] += 1
+            else:
+                compteur_mots[mot] = 1
+
+    mot_plus_utilise = max(compteur_mots, key=compteur_mots.get)
+    nb=compteur_mots[mot_plus_utilise]
+    return mot_plus_utilise,nb
+
+# most_use_word = count_words(result)
+
+result_href = select_href()
+def scrapping_duration():
+    durations = []
+    for row in result_href:
+        url = "https://www.spin-off.fr/" + row[0]   
+
+
+        response = requests.get(url)
+
+        text = response.text
+
+        page = BeautifulSoup(text, "html.parser")
+
+        div = page.find("div", class_="episode_infos_episode_format")
+    
+        if div:
+            duration = " ".join(div.stripped_strings)
+            durations.append(duration)
+        
+        time.sleep(1)
+
+    return durations
+
+
+print(scrapping_duration())
+    
+"""Insertion data postgres"""
 def insert_data_postgres(csv_file):
     episodes_data = read_episodes_csv(csv_file)
     
