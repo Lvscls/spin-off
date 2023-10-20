@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import psycopg2
 import sqlite3
+import time
 
 url_spin= "https://www.spin-off.fr/calendrier_des_series.html?date=2023-10"
 
@@ -100,6 +101,7 @@ def insert_episodes(data):
     cur.close()
     conn.close()
 
+"""Requetes utiles"""
 def select_episodes_sorted(data):
     conn = get_connection_sqlite()
     cur = conn.cursor()
@@ -109,16 +111,23 @@ def select_episodes_sorted(data):
     conn.close()
     return rows
 
-def select_disctinc_name():
+def select_distinct_name():
     conn = get_connection_sqlite()
     cur = conn.cursor()
     cur.execute("SELECT DISTINCT name FROM episodes")
+    
+result_sorted = select_episodes_sorted("country")
+
+def select_href():
+    conn = get_connection_sqlite()
+    cur = conn.cursor()
+    cur.execute("SELECT href FROM episodes WHERE channel = 'Apple TV+' ")
     rows = cur.fetchall()
     cur.close()
     conn.close()
     return rows
     
-# result = select_disctinc_name()
+result = select_distinct_name()
 
 def count_words(data):
     compteur_mots = {}
@@ -140,6 +149,33 @@ def count_words(data):
 
 # most_use_word = count_words(result)
 
+result_href = select_href()
+def scrapping_duration():
+    durations = []
+    for row in result_href:
+        url = "https://www.spin-off.fr/" + row[0]   
+
+
+        response = requests.get(url)
+
+        text = response.text
+
+        page = BeautifulSoup(text, "html.parser")
+
+        div = page.find("div", class_="episode_infos_episode_format")
+    
+        if div:
+            duration = " ".join(div.stripped_strings)
+            durations.append(duration)
+        
+        time.sleep(1)
+
+    return durations
+
+
+print(scrapping_duration())
+    
+"""Insertion data postgres"""
 def insert_data_postgres(csv_file):
     episodes_data = read_episodes_csv(csv_file)
     
