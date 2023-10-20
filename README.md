@@ -30,3 +30,7 @@ Requête SELECT country, COUNT(name) AS Nombre_episodes FROM episodes GROUP BY c
 
 Requête SQL pour récupèrer les noms de séries sans doublons (SELECT DISTINCT name from episodes)
 Ensuite on parcourt chaque tuple de la liste, on divise le titre en mots, puis on les compte à l'aide d'un dictionnaire. Enfin, on trouve le mot le plus utilisé en cherchant la clé ayant la valeur maximale dans le dictionnaire compteur_mots avec mot_plus_utilise = max(compteur_mots, key=compteur_mots.get)
+
+
+# SQL2/2 Orchestation
+On a pas a eu le temps pour gérer la récupèration d'id des episodes 

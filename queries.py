@@ -15,6 +15,7 @@ def insert_data_sqlite(data):
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS episodes(
+            id INTEGER PRIMARY KEY,
             name TEXT,
             saison INTEGER,
             episode INTEGER,
@@ -33,6 +34,28 @@ def insert_data_sqlite(data):
     conn.commit()
 
     cur.close()
+    conn.close()
+    
+def insert_duration_sqlite(duration,id):
+    conn = get_connection_sqlite()
+    
+    cur = conn.cursor()
+    cur.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS durations(
+            id INTEGER PRIMARY KEY,
+            duration TEXT,
+            episode INTEGER
+            FOREIGN KEY(episode) REFERENCES episodes(id)
+        )
+        '''
+    )
+    conn.commit()
+    cur.execute(
+        "INSERT INTO durations (duration, episode) VALUES (?,?)",
+        duration,id
+    )
+    conn.commit()
     conn.close()
 
 """Requetes utiles"""
@@ -64,6 +87,51 @@ def select_href():
     cur.close()
     conn.close()
     return rows
+
+def select_consecutive():
+    conn = get_connection_sqlite()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT DISTINCT date
+        FROM episodes
+    ''')
+    dates_octobre = [date[0] for date in cur.fetchall()]
+
+    # Créer une liste pour stocker les chaînes actives chaque jour
+    chaines_actives = []
+
+    # Créer une liste pour stocker le nombre de jours consécutifs actuels
+    jours_consecutifs_actuels = []
+    max_jours_consecutifs = 0
+    chaines_max_consecutifs = []
+    nombre_jours_consecutifs = 0
+
+    for date in dates_octobre:
+        # Exécuter une requête SQL pour obtenir les chaînes actives ce jour-là
+        cur.execute('''
+            SELECT DISTINCT channel
+            FROM episodes
+            WHERE date = ?
+        ''', (date,))
+
+        chaines_jour = [chaine[0] for chaine in cur.fetchall()]
+
+        # Vérifier si les chaînes actives ce jour sont les mêmes qu'hier
+        if chaines_jour == chaines_actives:
+            jours_consecutifs_actuels.append(date)
+            nombre_jours_consecutifs += 1
+            max_jours_consecutifs = nombre_jours_consecutifs
+        else:
+            # Nouvelle journée avec des chaînes différentes
+            if nombre_jours_consecutifs > max_jours_consecutifs:
+                max_jours_consecutifs = nombre_jours_consecutifs
+                chaines_max_consecutifs = chaines_actives
+            nombre_jours_consecutifs = 1
+            jours_consecutifs_actuels = [date]
+
+        chaines_actives = chaines_jour
+
+    return chaines_max_consecutifs, max_jours_consecutifs
     
 
 """Insertion data postgres"""

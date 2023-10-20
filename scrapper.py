@@ -33,7 +33,7 @@ def scrapping_series():
             infos.append([name, saison, episode, channel, country, href,date])
     return infos
 
-def scrapping_duration(result_href):
+def scrapping_duration_apple(result_href):
     durations = []
     for row in result_href:
         url = "https://www.spin-off.fr/" + row[0]   
