@@ -8,10 +8,10 @@ datas = scrapper.scrapping_series()
 
 file_path = "data/files/episodes.csv"
 
-#Fonction pour enregistrer les données scrapper dans le fichier csv
+# Fonction pour enregistrer les données scrapper dans le fichier csv
 # csv_manager.save_data_file(datas)
 
-#Fonction pour lire les données du csv
+# Fonction pour lire les données du csv
 # csv_data = csv_manager.read_episodes_csv(file_path)
 # print(csv_data)
 
@@ -33,7 +33,12 @@ file_path = "data/files/episodes.csv"
 data = queries.select_distinct_name()
 #On utilise l'algorythme pour chercher le plus d'occurence d'un mot
 count_word = module.count_words(data)
-print(count_word)
+# print(count_word)
+
+
+consecutive = queries.select_consecutive()
+print(consecutive)
+
 
 
 
