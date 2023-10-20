@@ -36,7 +36,7 @@ def scrapping_series():
             infos.append([name, saison, episode, channel, country, href,date])
     return infos
 
-infos = scrapping_series()
+""" infos = scrapping_series() """
 
 def save_data_file(infos):
     csv_file = "data/files/episodes.csv"
@@ -48,7 +48,7 @@ def save_data_file(infos):
 
     print(f"Insertion des données dans le {csv_file}.")
 
-save_data_file(infos)
+""" save_data_file(infos) """
 
 def read_episodes_csv(file_path):
     data = []
@@ -65,6 +65,9 @@ def read_episodes_csv(file_path):
             href = values[6]
             data.append((name, saison, episode, date, channel, country, href))
     return data
+
+csv_file = "data/files/episodes.csv"
+data = read_episodes_csv(csv_file)
 
 def get_connection_sqlite():
     conn = sqlite3.connect("data/databases/database.db")
@@ -97,13 +100,19 @@ def insert_episodes(data):
     cur.close()
     conn.close()
 
-def select_episodes():
+def select_episodes_sorted(data):
     conn = get_connection_sqlite()
     cur = conn.cursor()
+    cur.execute(f"SELECT {data}, COUNT(name) AS Nombre_episodes FROM episodes GROUP BY {data}")
+    rows = cur.fetchall()
     cur.close()
     conn.close()
+    return rows
     
-csv_file = "data/files/episodes.csv"
+result = select_episodes_sorted("country")
+
+for row in result:
+    print(row)
 
 def insert_data_postgres(csv_file):
     episodes_data = read_episodes_csv(csv_file)
